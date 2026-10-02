@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /paciente
+Disallow: /profissional
+Disallow: /admin
+Disallow: /api
+Disallow: /entrar
+Disallow: /cadastro
+Disallow: /esqueci-a-senha
+Disallow: /definir-senha

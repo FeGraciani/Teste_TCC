@@ -1,0 +1,57 @@
+# Desenvolvimento: só o banco (padrão)
+#   docker compose up -d
+# Rodar tudo em contêineres (banco + migrações + app), como em produção:
+#   docker compose --profile app up --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: alento-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: alento
+      POSTGRES_PASSWORD: alento
+      POSTGRES_DB: alento
+    ports:
+      - "5432:5432"
+    volumes:
+      - alento-pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alento -d alento"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrations:
+    profiles: ["app"]
+    build:
+      context: .
+      target: migrations
+    environment:
+      DATABASE_URL: postgresql://alento:alento@postgres:5432/alento
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  app:
+    profiles: ["app"]
+    build:
+      context: .
+      target: runner
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://alento:alento@postgres:5432/alento
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Defina ENCRYPTION_KEY no .env (npm run generate:key)}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      DEMO_MODE: ${DEMO_MODE:-false}
+      SMTP_URL: ${SMTP_URL:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-1}
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
+volumes:
+  alento-pgdata:

@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+/*
+ * Alento — tokens visuais
+ * Paleta inspirada nas árvores de São Paulo:
+ *   névoa (fundo), tinta (texto), quaresmeira (violeta, ações),
+ *   folha (verde, psiquiatria e confirmações), ipê (amarelo, destaques pontuais),
+ *   urucum (vermelho, ações destrutivas).
+ */
+@theme {
+  --font-sans: "Atkinson Hyperlegible Next Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-nevoa: #f4f3f8;
+  --color-nevoa-escura: #eae8f1;
+  --color-papel: #ffffff;
+  --color-tinta: #1f1c30;
+  --color-pedra: #625e74;
+  --color-linha: #e1deeb;
+  --color-linha-forte: #cfcadd;
+
+  --color-quaresmeira-50: #f3f1fb;
+  --color-quaresmeira-100: #e6e2f6;
+  --color-quaresmeira-200: #cdc5ee;
+  --color-quaresmeira-300: #ab9fdf;
+  --color-quaresmeira-500: #6a5cb8;
+  --color-quaresmeira-600: #54479f;
+  --color-quaresmeira-700: #463b8b;
+  --color-quaresmeira-800: #382f71;
+  --color-quaresmeira-900: #282253;
+
+  --color-folha-50: #edf5f1;
+  --color-folha-100: #d9eae1;
+  --color-folha-200: #b5d4c4;
+  --color-folha-500: #3d7867;
+  --color-folha-600: #336657;
+  --color-folha-700: #2b574a;
+  --color-folha-800: #21443a;
+
+  --color-ipe-50: #fef8e6;
+  --color-ipe-100: #fcefc6;
+  --color-ipe-300: #f6d67c;
+  --color-ipe-400: #f0be45;
+  --color-ipe-800: #6e4f0c;
+
+  --color-urucum-50: #fbeeeb;
+  --color-urucum-100: #f6dad4;
+  --color-urucum-600: #b03f2e;
+  --color-urucum-700: #8e3122;
+
+  --shadow-flutuante: 0 1px 2px rgb(31 28 48 / 0.05), 0 18px 40px -18px rgb(40 34 83 / 0.28);
+  --shadow-suave: 0 1px 2px rgb(31 28 48 / 0.06);
+
+  --animate-surgir: surgir 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  @keyframes surgir {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    background-color: var(--color-nevoa);
+    color: var(--color-tinta);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-quaresmeira-500);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--color-ipe-300);
+    color: var(--color-tinta);
+  }
+
+  summary {
+    cursor: pointer;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+/* Névoa: a assinatura visual do app. Dados ocultos pelo paciente aparecem
+   desfocados — nunca como tarjas pretas. O texto borrado é sempre fictício:
+   o dado real nunca sai do servidor. */
+@utility nevoa {
+  filter: blur(5px);
+  opacity: 0.55;
+  user-select: none;
+  pointer-events: none;
+}
+
+@utility transicao-nevoa {
+  transition:
+    filter 0.5s ease,
+    opacity 0.5s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

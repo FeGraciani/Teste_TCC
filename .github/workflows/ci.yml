@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+  DATABASE_URL: postgresql://alento:alento@localhost:5432/alento
+  TEST_DATABASE_URL: postgresql://alento:alento@localhost:5432/alento_test
+  # Chave fixa APENAS para a CI (dados descartáveis). Nunca use em produção.
+  ENCRYPTION_KEY: BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc=
+  APP_URL: http://localhost:3100
+
+jobs:
+  qualidade:
+    name: Formatação, lint, tipos e testes unitários
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+  integracao:
+    name: Testes de integração (PostgreSQL)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: alento
+          POSTGRES_PASSWORD: alento
+          POSTGRES_DB: alento
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U alento -d alento"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Criar o banco de testes
+        run: PGPASSWORD=alento psql -h localhost -U alento -d alento -c "CREATE DATABASE alento_test;"
+      - run: npm run test:integration
+
+  ponta-a-ponta:
+    name: Testes de ponta a ponta (navegador)
+    runs-on: ubuntu-latest
+    needs: [qualidade]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: alento
+          POSTGRES_PASSWORD: alento
+          POSTGRES_DB: alento
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U alento -d alento"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run db:setup
+      - run: npm run build
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: relatorio-playwright
+          path: playwright-report/
+          retention-days: 7
