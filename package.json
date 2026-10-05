@@ -33,7 +33,7 @@
   "dependencies": {
     "@fontsource-variable/atkinson-hyperlegible-next": "^5.3.0",
     "clsx": "^2.1.1",
-    "dotenv": "^18.0.4",
+    "dotenv": "^18.0.5",
     "drizzle-orm": "^0.45.3",
     "lucide-react": "^1.49.0",
     "luxon": "^3.7.2",
